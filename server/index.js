@@ -4,6 +4,8 @@ const mongoose = require('mongoose');
 const { Server } = require('socket.io');
 const http = require('http');
 require('dotenv').config();
+const Message = require('./models/Message');
+
 
 const authRoutes = require('./routes/auth');
 
@@ -27,6 +29,8 @@ mongoose.connect(process.env.MONGODB_URI)
   .then(() => console.log('Connected to MongoDB'))
   .catch(err => console.error('MongoDB connection error:', err));
 
+  
+
 // Routes
 app.use('/api/auth', authRoutes);
 
@@ -39,17 +43,20 @@ io.on('connection', (socket) => {
   console.log('User connected:', socket.id);
 
   // Handle sendMessage
-  socket.on('sendMessage', (data) => {
-    console.log('Message received:', data);
-    
-    // Broadcast message to all clients (or specific receiver)
-    io.emit('receiveMessage', {
+socket.on('sendMessage', async (data) => {
+  try {
+    const newMessage = await Message.create({
       senderId: data.senderId,
       receiverId: data.receiverId,
-      message: data.message,
-      timestamp: new Date()
+      message: data.message
     });
-  });
+
+    io.emit('receiveMessage', newMessage);
+  } catch (err) {
+    console.error('Message save error:', err);
+  }
+});
+
 
   // Handle disconnect
   socket.on('disconnect', () => {
