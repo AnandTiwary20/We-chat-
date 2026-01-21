@@ -1,17 +1,16 @@
 import React from 'react'
 import { Routes , Route } from 'react-router-dom'
-import Homepage from './pages/Homepage.jsx'
+import HomePage from './pages/HomePage.jsx'
 import LoginPage from './pages/LoginPage.jsx'
 import ProfilePage from './pages/ProfilePage.jsx'
 
 function App() {
   return (
-    <div>
+    <div className = "bg-[url('./src/assets/bgImage.svg')]">
       <Routes>
-        <Route path="/" element={<Homepage />} />
+        <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/profile" element={<ProfilePage />} />
-        <Route />
       </Routes>
 
 
