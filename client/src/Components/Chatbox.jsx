@@ -1,89 +1,106 @@
 import React, { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { ChatState } from "../Context/ChatProvider";
-import { getSocket } from "../components/SocketClient";
 import bgImage from "../assets/bgImage.svg";
 
 const Chatbox = () => {
-  const { user, selectedChat } = ChatState();
+  const { user, selectedChat, socket } = ChatState();
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState("");
   const [loading, setLoading] = useState(false);
   const bottomRef = useRef(null);
 
+  // Fetch messages when chat changes
   useEffect(() => {
     if (!selectedChat) return;
 
-    const loadMessages = async () => {
-      setLoading(true);
+    const fetchMessages = async () => {
       try {
-        const res = await axios.get(
+        setLoading(true);
+        const { data } = await axios.get(
           `http://localhost:5000/api/message/${selectedChat._id}`
         );
-        setMessages(Array.isArray(res.data) ? res.data : []);
-      } catch (err) {
+        setMessages(Array.isArray(data) ? data : []);
+      } catch {
         setMessages([]);
       } finally {
         setLoading(false);
       }
     };
 
-    loadMessages();
+    fetchMessages();
   }, [selectedChat]);
 
+  // Socket listeners
   useEffect(() => {
-    if (!selectedChat || !user) return;
+    if (!socket || !selectedChat) return;
 
-    const socket = getSocket();
+    // Join chat room
     socket.emit("join chat", selectedChat._id);
 
-    const onMessageReceived = (msg) => {
+    const handleMessage = (msg) => {
       setMessages((prev) => [...prev, msg]);
     };
 
-    socket.on("message recieved", onMessageReceived);
+    socket.on("message recieved", handleMessage);
 
     return () => {
-      socket.off("message recieved", onMessageReceived);
+      socket.off("message recieved", handleMessage);
     };
-  }, [selectedChat, user]);
+  }, [socket, selectedChat]);
 
+  // Auto scroll
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
   const sendMessage = () => {
-    if (!text.trim()) return;
+    if (!text.trim() || !socket || !selectedChat) return;
 
-    const socket = getSocket();
-
-    const newMessage = {
+    const tempMessage = {
+      _id: Date.now(),
       sender: {
         _id: user._id,
         name: user.name,
       },
       content: text,
       chat: selectedChat,
+      createdAt: new Date().toISOString(),
     };
 
-    setMessages((prev) => [...prev, newMessage]);
-    socket.emit("new message", newMessage);
+    // Add message to UI immediately (sender won't receive echo)
+    setMessages((prev) => [...prev, tempMessage]);
+
+    // Send to server
+    socket.emit("new message", {
+      sender: tempMessage.sender,
+      content: tempMessage.content,
+      chat: selectedChat,
+    });
+
     setText("");
   };
 
   if (!selectedChat) {
     return (
-      <div style={{ flex: 1, display: "flex", justifyContent: "center", alignItems: "center" }}>
-        <p>Open a chat to start talking</p>
+      <div
+        style={{
+          flex: 1,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        Select a chat to start messaging
       </div>
     );
   }
 
   return (
-    <div style={{ height: "100%", display: "flex", flexDirection: "column" }}>
-      <div style={{ padding: 12, background: "#1f2937", color: "#fff" }}>
+    <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
+      <div style={{ padding: 12, background: "#1f2937", color: "white" }}>
         <strong>
-          {selectedChat.users?.find(u => u._id !== user._id)?.name || "Chat"}
+          {selectedChat.users?.find((u) => u._id !== user._id)?.name}
         </strong>
       </div>
 
@@ -92,27 +109,23 @@ const Chatbox = () => {
           flex: 1,
           padding: 12,
           overflowY: "auto",
-          background: `url(${bgImage}) center / cover no-repeat`,
+          backgroundImage: `url(${bgImage})`,
+          backgroundSize: "cover",
         }}
       >
         {loading ? (
-          <p>Loading messages...</p>
+          "Loading..."
         ) : (
           messages.map((m, i) => {
-            const isMine = (m.sender?._id || m.sender) === user._id;
+            const isMine = m.sender?._id === user._id;
             return (
-              <div
-                key={m._id || i}
-                style={{
-                  textAlign: isMine ? "right" : "left",
-                  marginBottom: 6,
-                }}
-              >
+              <div key={i} style={{ textAlign: isMine ? "right" : "left" }}>
                 <span
                   style={{
                     display: "inline-block",
                     padding: "8px 12px",
                     borderRadius: 16,
+                    marginBottom: 6,
                     background: isMine
                       ? "rgba(147,197,253,0.85)"
                       : "rgba(229,231,235,0.9)",
@@ -127,7 +140,7 @@ const Chatbox = () => {
         <div ref={bottomRef} />
       </div>
 
-      <div style={{ display: "flex", padding: 12, borderTop: "1px solid #e5e7eb" }}>
+      <div style={{ display: "flex", padding: 12 }}>
         <input
           value={text}
           onChange={(e) => setText(e.target.value)}

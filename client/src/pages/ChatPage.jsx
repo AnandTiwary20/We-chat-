@@ -1,10 +1,9 @@
 import React, { useState } from "react";
 import Chatbox from "../components/Chatbox";
 import MyChats from "../components/MyChats";
-import { SocketClient } from "../components/SocketClient";
 import { ChatState } from "../Context/ChatProvider";
 
-const Chatpage = () => {
+const ChatPage = () => {
   const [fetchAgain, setFetchAgain] = useState(false);
   const { user, loading } = ChatState();
 
@@ -29,31 +28,24 @@ const Chatpage = () => {
         height: "100vh",
         width: "100%",
         display: "flex",
-        flexDirection: "column",
+        overflow: "hidden",
       }}
     >
-      {user && <SocketClient />}
+      {/* LEFT SIDEBAR */}
+      {user && (
+        <div style={{ width: "320px", flexShrink: 0 }}>
+          <MyChats fetchAgain={fetchAgain} />
+        </div>
+      )}
 
-      <div
-        style={{
-          flex: 1,
-          display: "flex",
-          overflow: "hidden",
-        }}
-      >
-        {user && <MyChats fetchAgain={fetchAgain} />}
-
-        {user && (
-          <div style={{ flex: 1 }}>
-            <Chatbox
-              fetchAgain={fetchAgain}
-              setFetchAgain={setFetchAgain}
-            />
-          </div>
-        )}
-      </div>
+      {/* MAIN CHAT AREA */}
+      {user && (
+        <div style={{ flex: 1 }}>
+          <Chatbox />
+        </div>
+      )}
     </div>
   );
 };
 
-export default Chatpage;
+export default ChatPage;

@@ -135,7 +135,7 @@ io.on("connection", (socket) => {
         });
       });
     } catch (err) {
-      console.log(err);
+      console.log("Error handling message:", err);
     }
   });
 });

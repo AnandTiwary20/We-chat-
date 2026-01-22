@@ -35,7 +35,7 @@ function LoginPage() {
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("userInfo", JSON.stringify(userRes.data));
       
-      window.location.href = "/chat";
+      window.location.href = "/homepage";
     } catch (err) {
       console.error("Login error:", err);
       alert("Invalid credentials");
@@ -92,7 +92,7 @@ function LoginPage() {
             Don't have an account?{" "}
             <span
               style={{ color: '#2563eb', fontWeight: '600', cursor: 'pointer' }}
-              onClick={() => navigate("/register")}
+              onClick={() => navigate("/")}
             >
               Sign up
             </span>

@@ -1,0 +1,32 @@
+Some major problems I faced were:
+Understanding how frontend and backend communicate
+Managing authentication state across pages
+Handling real-time messages without refreshing the page
+Socket.IO events not triggering correctly
+MongoDB queries returning unexpected results
+
+Initially, messages were not appearing instantly, and sometimes chats were duplicated. Fixing these issues required debugging and understanding the logic deeply.
+
+
+Problems I faced:
+Messages were sent but not received
+Wrong users were getting messages
+Socket rooms were confusing at first
+Through debugging, I learned:
+Each user must join a room using their user ID
+Each chat must have its own room
+Events like setup, join chat, and new message must be handled carefully
+Why socket connections should be initialized only once
+After fixing these issues, the chat started working smoothly in real time.
+
+ Future Scope
+In the future, this project can be improved by:
+Adding group chat functionality
+Implementing file and image sharing
+Showing online/offline user status
+Improving UI responsiveness
+Adding message read receipts
+Adding icons on the profile pages
+adding chat input emojis 
+
+Overall this project was good learning experience for me with websocket and socket.io.
