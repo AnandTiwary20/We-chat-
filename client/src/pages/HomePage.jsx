@@ -1,9 +1,23 @@
-import React, { useState } from "react";
+import React, { useState , useEffect } from "react";
+import { io } from "socket.io-client";
 
+const socket = io("http://localhost:5000");
 function HomePage() {
-  const [messages] = useState([
-    { id: 1, text: "Welcome to the chat!" }
-  ]);
+  const [messages, setMessages] = useState([
+  { id: 1, text: "Welcome to the chat!" }
+]);
+    useEffect(() => {
+    socket.on("receiveMessage", (msg) => {
+      setMessages((prev) => [
+        ...prev,
+        { id: Date.now(), text: msg.message }
+      ]);
+    });
+
+    return () => {
+      socket.off("receiveMessage");
+    };
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center">
