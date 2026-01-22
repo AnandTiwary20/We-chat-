@@ -1,4 +1,4 @@
-import React, { useState , useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { io } from "socket.io-client";
 
 const socket = io("http://localhost:5000");
@@ -6,6 +6,10 @@ function HomePage() {
   const [messages, setMessages] = useState([
   { id: 1, text: "Welcome to the chat!" }
 ]);
+ const [text, setText] = useState("");
+  const senderId = "user1";
+  const receiverId = "user2";
+
     useEffect(() => {
     socket.on("receiveMessage", (msg) => {
       setMessages((prev) => [
@@ -18,6 +22,17 @@ function HomePage() {
       socket.off("receiveMessage");
     };
   }, []);
+   const handleSend = () => {
+    if (!text.trim()) return;
+
+    socket.emit("sendMessage", {
+      senderId,
+      receiverId,
+      message: text
+    });
+
+    setText("");
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -38,11 +53,15 @@ function HomePage() {
         <div className="flex gap-2">
           <input
             type="text"
+             value={text}
+            onChange={(e) => setText(e.target.value)}
             placeholder="Type a message..."
             className="flex-1 border rounded-lg px-2 py-1"
           />
-          <button className="bg-blue-500 text-white px-4 rounded-lg">
-            Send
+          <button
+            onClick={handleSend}
+            className="bg-blue-500 text-white px-4 rounded-lg"
+          >            Send
           </button>
         </div>
 
